@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ APP_NAME }} — {{ APP_TAGLINE }}</title>
+  <link rel="preconnect" href="https://cdn.plot.ly">
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <!-- PDO logo placeholder -->
+      <div class="logo">PDO</div>
+      <div class="brand-text">
+        <h1>{{ APP_NAME }} <span class="ar">حارس صندوق الحشو</span></h1>
+        <p>{{ APP_TAGLINE }} &middot; {{ OPERATOR }}</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="clock" id="liveClock">--:--:--</div>
+      <div class="status-pill {{ 'ok' if model_ready else 'bad' }}">
+        <span class="dot"></span>{{ 'MODELS LOADED' if model_ready else 'NO MODEL — run train.py' }}
+      </div>
+    </div>
+  </header>
+
+  <nav class="sidenav">
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active=='dashboard' }}">
+      <span class="ico">▣</span> Dashboard <span class="ar">لوحة</span></a>
+    <a href="{{ url_for('inspector') }}" class="{{ 'active' if active=='inspector' }}">
+      <span class="ico">◈</span> Well Inspector <span class="ar">فحص البئر</span></a>
+    <a href="{{ url_for('alerts_page') }}" class="{{ 'active' if active=='alerts' }}">
+      <span class="ico">⚠</span> Alerts &amp; History <span class="ar">الإنذارات</span></a>
+    <a href="{{ url_for('analytics_page') }}" class="{{ 'active' if active=='analytics' }}">
+      <span class="ico">📊</span> Analytics <span class="ar">التحليلات</span></a>
+    <a href="{{ url_for('model_page') }}" class="{{ 'active' if active=='model' }}">
+      <span class="ico">⚙</span> Model Management <span class="ar">النماذج</span></a>
+    <div class="nav-spacer"></div>
+    <div class="nav-footer">v1.0 &middot; Hybrid LSTM + Isolation Forest</div>
+  </nav>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    // Live clock
+    setInterval(() => {
+      document.getElementById('liveClock').textContent =
+        new Date().toLocaleTimeString();
+    }, 1000);
+    window.SBG_THEME = {{ THEME | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

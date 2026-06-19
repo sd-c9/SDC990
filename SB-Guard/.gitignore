@@ -1,0 +1,16 @@
+# SB-Guard ignores
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Large raw + feature telemetry (>100MB — exceed GitHub limits).
+# Regenerate with `python -m data.dataset_generator`.
+data/generated/fleet_raw.parquet
+data/generated/fleet_features.parquet
+
+# Generated PDF reports (regenerated on demand)
+reports/*.pdf
+
+# Runtime logs (alert history is recreated at runtime)
+logs/*.jsonl

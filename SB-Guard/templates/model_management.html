@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h2>Model Management <span class="ar">إدارة النماذج</span></h2>
+  <p>Retrain the hybrid model, tune thresholds and review data quality</p>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <h3>Retrain Model <span class="ar">إعادة التدريب</span></h3>
+    <p class="muted" style="font-size:13px;margin-bottom:14px">
+      Regenerates the synthetic fleet, retrains the LSTM + Isolation Forest,
+      re-scores the fleet and hot-reloads the engine.
+    </p>
+    <button class="btn" id="retrainBtn">Retrain Model</button>
+    <div style="margin-top:16px" class="progressbar"><i id="retrainBar"></i></div>
+    <div class="muted" id="retrainMsg" style="font-size:12px;margin-top:6px">idle</div>
+  </div>
+
+  <div class="panel">
+    <h3>Alert Threshold <span class="ar">عتبة الإنذار</span></h3>
+    <p class="muted" style="font-size:13px;margin-bottom:14px">
+      Combined ensemble score above which an alert is triggered.
+    </p>
+    <div class="flex">
+      <input type="range" id="thr" min="5" max="95" step="1" style="flex:1">
+      <b id="thrVal" style="color:var(--accent);min-width:48px;text-align:right">—</b>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:10px">
+      Lower = more sensitive (higher recall, more false alarms).
+      Higher = more conservative (fewer false alarms, risk of misses).
+    </p>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Data Quality Report <span class="ar">جودة البيانات</span></h3>
+  <div class="kpi-grid" style="margin-top:6px">
+    <div class="kpi accent"><div class="label">Raw Samples</div><div class="value" id="dqRows">—</div></div>
+    <div class="kpi green"><div class="label">Completeness</div><div class="value" id="dqComplete">—</div></div>
+    <div class="kpi red"><div class="label">Missing Data</div><div class="value" id="dqMissing">—</div></div>
+    <div class="kpi accent"><div class="label">Wells</div><div class="value" id="dqWells">—</div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Model Version History <span class="ar">سجل الإصدارات</span></h3>
+  <table class="data">
+    <thead><tr>
+      <th>Version</th><th>Trained At</th><th>Backend</th>
+      <th>ROC-AUC</th><th>F1</th><th>Precision</th><th>Recall</th>
+    </tr></thead>
+    <tbody id="verTable"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}<script>initModel();</script>{% endblock %}

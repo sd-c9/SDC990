@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h2>Analytics <span class="ar">التحليلات</span></h2>
+  <p>Model performance, feature importance and fleet-level trends</p>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi accent"><div class="label">Precision</div><div class="value" id="mPrec">—</div></div>
+  <div class="kpi accent"><div class="label">Recall</div><div class="value" id="mRec">—</div></div>
+  <div class="kpi accent"><div class="label">F1-Score</div><div class="value" id="mF1">—</div></div>
+  <div class="kpi green"><div class="label">ROC-AUC</div><div class="value" id="mAuc">—</div></div>
+  <div class="kpi red"><div class="label">False Alarm Rate</div><div class="value" id="mFar">—</div></div>
+  <div class="kpi green"><div class="label">Mean Lead Time</div><div class="value" id="mLead">—</div></div>
+  <div class="kpi accent"><div class="label">MTTD</div><div class="value" id="mMttd">—</div></div>
+  <div class="kpi green"><div class="label">Detection Rate</div><div class="value" id="mDet">—</div></div>
+</div>
+
+<div class="grid-2">
+  <div class="panel"><h3>ROC Curve</h3><div id="rocChart" class="chart tall"></div></div>
+  <div class="panel"><h3>Confusion Matrix (held-out wells)</h3><div id="cmChart" class="chart tall"></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="panel"><h3>Feature Importance</h3><div id="featChart" class="chart tall"></div></div>
+  <div class="panel"><h3>Monthly SB Failure Trend</h3><div id="trendChart" class="chart tall"></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <h3>Most At-Risk Wells <span class="ar">الأكثر خطورة</span></h3>
+    <table class="data">
+      <thead><tr><th>#</th><th>Well</th><th>Band</th><th>Risk</th><th>MSI</th></tr></thead>
+      <tbody id="riskRank"></tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h3>Estimated Cost Savings</h3>
+    <div class="kpi-grid" style="margin-top:6px">
+      <div class="kpi green"><div class="label">Total Saved</div><div class="value" id="savTotal">—</div></div>
+      <div class="kpi accent"><div class="label">Events Averted</div><div class="value" id="savEvents">—</div></div>
+      <div class="kpi accent"><div class="label">Deferred Oil Avoided</div><div class="value" id="savBbl">—</div></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:8px">
+      Savings combine averted workover &amp; cleanup costs, avoided environmental
+      incidents and recovered deferred production, net of planned intervention cost.
+    </p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>initAnalytics();</script>{% endblock %}

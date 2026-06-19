@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head flex">
+  <div>
+    <h2>Fleet Dashboard <span class="ar">لوحة المراقبة</span></h2>
+    <p>Real-time Stuffing Box leak risk across the rod-pump fleet · <span id="simTime" class="muted"></span></p>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi red">
+    <div class="label">Active Alerts <span class="ar">إنذارات</span></div>
+    <div class="value" id="kpiAlerts">—</div>
+    <div class="sub" id="kpiAlertsSub">—</div>
+  </div>
+  <div class="kpi accent">
+    <div class="label">Wells Monitored <span class="ar">الآبار</span></div>
+    <div class="value" id="kpiWells">—</div>
+    <div class="sub">Beam-lift (rod pump) wells</div>
+  </div>
+  <div class="kpi green">
+    <div class="label">Failures Prevented <span class="ar">تم تفاديها</span></div>
+    <div class="value" id="kpiPrevented">—</div>
+    <div class="sub">Early misalignment detection</div>
+  </div>
+  <div class="kpi accent">
+    <div class="label">Estimated Cost Saved <span class="ar">التوفير</span></div>
+    <div class="value" id="kpiSaved">—</div>
+    <div class="sub">Averted workovers + deferred oil</div>
+  </div>
+  <div class="kpi green">
+    <div class="label">Fleet Health <span class="ar">الصحة</span></div>
+    <div class="value" id="kpiHealth">—</div>
+    <div class="sub">Composite fleet score</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Fleet Health — Last 24 Hours</h3>
+  <div id="fleetHealthChart" class="chart"></div>
+</div>
+
+<div class="panel">
+  <h3>Well Status Grid <span class="ar">شبكة الآبار</span></h3>
+  <div class="legend-row">
+    <span class="k"><i style="background:var(--green)"></i>Normal</span>
+    <span class="k"><i style="background:var(--yellow)"></i>Warning</span>
+    <span class="k"><i style="background:var(--red)"></i>Critical</span>
+  </div>
+  <div id="wellGrid" class="well-grid" style="margin-top:12px">
+    <div class="loading">Loading fleet…</div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>initDashboard();</script>{% endblock %}

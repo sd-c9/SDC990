@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head flex">
+  <div>
+    <h2>Well Inspector <span class="ar">فحص البئر</span></h2>
+    <p>Deep-dive diagnostics, dynacard analysis and multi-horizon prediction</p>
+  </div>
+  <div class="spacer"></div>
+  <select id="wellSelect">
+    {% for w in wells %}<option value="{{ w }}">{{ w }}</option>{% endfor %}
+  </select>
+  <a class="btn ghost" id="reportBtn" href="#" onclick="downloadReport();return false;">⬇ PDF Report</a>
+</div>
+
+<div class="grid-3">
+  <div class="panel">
+    <h3>Risk Summary</h3>
+    <div class="flex" style="justify-content:space-between">
+      <div>
+        <div class="muted" style="font-size:12px">Combined Risk Score</div>
+        <div style="font-size:40px;font-weight:800" id="wiScore">—</div>
+      </div>
+      <div style="text-align:right">
+        <span class="badge NORMAL" id="wiBand">—</span>
+        <div class="muted" style="font-size:12px;margin-top:8px">MSI <b id="wiMsiVal">—</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Failure Probability by Horizon</h3>
+    <div class="hbar"><div class="top"><span>Next 24 h</span><span id="hzv24h">—</span></div>
+      <div class="track"><div class="fill" id="hz24h" style="width:0"></div></div></div>
+    <div class="hbar"><div class="top"><span>Next 48 h</span><span id="hzv48h">—</span></div>
+      <div class="track"><div class="fill" id="hz48h" style="width:0"></div></div></div>
+    <div class="hbar"><div class="top"><span>Next 72 h</span><span id="hzv72h">—</span></div>
+      <div class="track"><div class="fill" id="hz72h" style="width:0"></div></div></div>
+  </div>
+  <div class="panel">
+    <h3>Misalignment Severity (MSI)</h3>
+    <div id="msiGauge" class="chart short"></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <h3>Surface Dynacard — Current vs Baseline <span class="ar">بطاقة الحمل</span></h3>
+    <div id="dynacard" class="chart tall"></div>
+  </div>
+  <div class="panel">
+    <h3>Key Operating Parameters</h3>
+    <table class="data">
+      <tr><td>Peak Polished Rod Load (PPRL)</td><td id="stPprl">—</td></tr>
+      <tr><td>Min Polished Rod Load (MPRL)</td><td id="stMprl">—</td></tr>
+      <tr><td>Polished Rod Load Range (PRLR)</td><td id="stPrlr">—</td></tr>
+      <tr><td>Surface Card Area (SCA)</td><td id="stSca">—</td></tr>
+      <tr><td>Pump Fillage</td><td id="stFill">—</td></tr>
+      <tr><td>Gearbox Temperature</td><td id="stTemp">—</td></tr>
+      <tr><td>Isolation-Forest Anomaly</td><td id="stAnom">—</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Time-Series Diagnostics (last 72 h)</h3>
+  <div class="grid-2">
+    <div><div class="muted" style="font-size:12px;margin-bottom:4px">Strokes Per Minute</div><div id="chSpm" class="chart short"></div></div>
+    <div><div class="muted" style="font-size:12px;margin-bottom:4px">Lateral Vibration Index</div><div id="chVib" class="chart short"></div></div>
+    <div><div class="muted" style="font-size:12px;margin-bottom:4px">Stuffing Box Friction</div><div id="chFric" class="chart short"></div></div>
+    <div><div class="muted" style="font-size:12px;margin-bottom:4px">Combined Risk Score</div><div id="chRisk" class="chart short"></div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Maintenance Recommendation <span class="ar">التوصية</span></h3>
+  <div class="reco" id="wiReco">—</div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+initInspector();
+function downloadReport(){
+  const w = document.getElementById('wellSelect').value;
+  window.location = '/api/report/' + w;
+}
+</script>{% endblock %}
