@@ -81,10 +81,11 @@ class LSTMLeakClassifier:
                 clf.fit(Xf, y[:, i])
             return self
 
-        # Class weights — positives are rare. Weight by inverse prevalence on
-        # the 24h horizon (the rarest, most important target).
+        # Class weights — positives are rare even after oversampling. Weight by
+        # inverse prevalence on the 24h horizon, capped to avoid over-confident
+        # blow-up when combined with oversampling.
         pos = float(y[:, 0].mean()) + 1e-6
-        class_weight = {0: 1.0, 1: float(min(50.0, (1 - pos) / pos))}
+        class_weight = {0: 1.0, 1: float(min(12.0, (1 - pos) / pos))}
 
         val = (X_val, y_val) if X_val is not None else None
         cbs = [callbacks.EarlyStopping(monitor="loss", patience=3,

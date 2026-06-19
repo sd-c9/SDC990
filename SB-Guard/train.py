@@ -103,6 +103,22 @@ def main():
 
     Xtr = np.concatenate(Xtr); ytr = np.concatenate(ytr)
     Xte = np.concatenate(Xte); yte = np.concatenate(yte)
+
+    # Imminent-failure (24h) windows are ~30x rarer than the 72h windows, so a
+    # single multi-horizon head learns an under-confident 24h probability.
+    # Oversample 24h-positive sequences to lift the operational base rate to a
+    # few percent — this calibrates the 24h output into the alert regime while
+    # preserving the strong rank separation.
+    pos24 = np.where(ytr[:, 0] == 1)[0]
+    if len(pos24):
+        target_rate = 0.06
+        reps = max(1, int(round(target_rate * len(ytr) / max(1, len(pos24)))))
+        Xtr = np.concatenate([Xtr] + [Xtr[pos24]] * reps)
+        ytr = np.concatenate([ytr] + [ytr[pos24]] * reps)
+        perm = np.random.default_rng(cfg.RANDOM_SEED).permutation(len(Xtr))
+        Xtr, ytr = Xtr[perm], ytr[perm]
+        print(f"Oversampled 24h positives x{reps} -> base rate "
+              f"{ytr[:,0].mean():.3f}")
     print(f"LSTM sequences: train {Xtr.shape}  test {Xte.shape}  "
           f"(pos24h train={int(ytr[:,0].sum())})")
 
@@ -165,7 +181,7 @@ def main():
     fi = evaluator.feature_importance(detector.model, cfg.IF_FEATURES)
 
     metrics_blob = {
-        "generated_at": pd.Timestamp.utcnow().isoformat(),
+        "generated_at": pd.Timestamp.now('UTC').isoformat(),
         "backend": lstm.backend,
         "n_wells": len(wells),
         "n_train_wells": len(train_wells),
@@ -192,7 +208,7 @@ def main():
             registry = json.load(fh)
     registry.append({
         "version": f"1.0.{len(registry)}",
-        "trained_at": pd.Timestamp.utcnow().isoformat(),
+        "trained_at": pd.Timestamp.now('UTC').isoformat(),
         "backend": lstm.backend,
         "roc_auc": metrics.get("roc_auc"),
         "f1": metrics.get("f1"),
