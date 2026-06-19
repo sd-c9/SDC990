@@ -92,7 +92,7 @@ LSTM_WINDOW = 72                      # 72 time steps == 12 h lookback
 LSTM_UNITS = [128, 64, 32]
 LSTM_DROPOUT = 0.2
 LSTM_HORIZONS_H = [24, 48, 72]        # multi-horizon failure prediction
-LSTM_EPOCHS = 12
+LSTM_EPOCHS = 8
 LSTM_BATCH = 256
 
 # --------------------------------------------------------------------------- #

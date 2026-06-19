@@ -69,18 +69,25 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         lvi_n = _minmax(g["LVI"])
         tds_n = _minmax(g["TDS"])
         fric_n = _minmax(g["sb_friction"])
-        asym = _minmax((g["PPRL"] - g["PPRL"].rolling(win_24h, min_periods=6).median()).abs())
+        asym = _minmax((g["PPRL"]
+                        - g["PPRL"].rolling(win_24h, min_periods=1).median())
+                       .abs().fillna(0.0))
         g["MSI"] = np.clip(0.40 * lvi_n + 0.25 * tds_n
-                           + 0.20 * fric_n + 0.15 * asym, 0, 1)
+                           + 0.20 * fric_n + 0.15 * asym, 0, 1).fillna(0.0)
 
         g.drop(columns=["_LVI_z", "_sb_friction_z"], inplace=True)
         out.append(g)
 
     res = pd.concat(out, ignore_index=True)
-    # Guarantee every canonical feature exists.
+    # Guarantee every canonical feature exists and is finite.
     for c in cfg.FEATURE_COLUMNS:
         if c not in res.columns:
             res[c] = 0.0
+    res[cfg.FEATURE_COLUMNS] = (
+        res[cfg.FEATURE_COLUMNS]
+        .replace([np.inf, -np.inf], np.nan)
+        .fillna(0.0)
+    )
     return res
 
 
@@ -118,4 +125,6 @@ def build_sequences(values: np.ndarray,
         y.append(labels[end - 1])
     if not X:
         return np.empty((0, window, values.shape[1])), np.empty((0, labels.shape[1]))
-    return np.asarray(X, dtype=np.float32), np.asarray(y, dtype=np.float32)
+    Xa = np.nan_to_num(np.asarray(X, dtype=np.float32),
+                       nan=0.0, posinf=0.0, neginf=0.0)
+    return Xa, np.asarray(y, dtype=np.float32)

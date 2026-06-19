@@ -59,7 +59,7 @@ class LSTMLeakClassifier:
         m.add(layers.Dropout(cfg.LSTM_DROPOUT))
         m.add(layers.Dense(32, activation="relu"))
         m.add(layers.Dense(len(cfg.LSTM_HORIZONS_H), activation="sigmoid"))
-        m.compile(optimizer=tf.keras.optimizers.Adam(1e-3),
+        m.compile(optimizer=tf.keras.optimizers.Adam(1e-3, clipnorm=1.0),
                   loss="binary_crossentropy",
                   metrics=[tf.keras.metrics.AUC(name="auc"),
                            tf.keras.metrics.Precision(name="prec"),

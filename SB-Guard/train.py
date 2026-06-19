@@ -125,7 +125,9 @@ def main():
 
         # window-end indices at serving stride
         ends = np.arange(cfg.LSTM_WINDOW, len(g) + 1, SERVE_STRIDE)
-        seqs = np.stack([vals[e - cfg.LSTM_WINDOW:e] for e in ends]).astype(np.float32)
+        seqs = np.nan_to_num(
+            np.stack([vals[e - cfg.LSTM_WINDOW:e] for e in ends]).astype(np.float32),
+            nan=0.0, posinf=0.0, neginf=0.0)
         probs = lstm.predict_proba(seqs)              # (m, 3)
         end_rows = ends - 1
         combined = ensemble.combine(probs[:, 0], if_anom[end_rows])
