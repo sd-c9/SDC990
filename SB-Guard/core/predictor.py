@@ -55,16 +55,84 @@ class Predictor:
         self.wells = sorted(scored["well_id"].unique().tolist())
         self._well_frames = {w: g.reset_index(drop=True)
                              for w, g in scored.groupby("well_id")}
-        # Shared hourly time axis (use the longest well's timestamps).
+        # Shared hourly time axis.
         self._times = np.sort(scored["timestamp"].unique())
-        # Start the playhead near the end so alerts are visible immediately,
-        # but leave a 48h window of "future" for the realtime loop to reveal.
-        n = len(self._times)
-        self.playhead = max(0, n - 1 - 6 * 48)
         self.metrics = load_metrics()
         self.threshold = self.metrics.get("alert_threshold", cfg.ALERT_THRESHOLD)
+
+        # Position the playhead at a moment where the fleet is genuinely active
+        # (most wells concurrently in an alert window) so the live dashboard
+        # opens with representative state instead of a quiet stretch.
+        self.playhead = self._best_playhead()
+
+        # Reset per-load runtime state, then seed history + KPIs from the
+        # failures that have already occurred by the current playhead time.
+        self._failures_prevented = 0
+        self._counted_wells = set()
+        self.alerts.active.clear()
+        self.alerts.history.clear()
+        self._seed_history()
+
         self.ready = True
         self._recompute_alerts()
+        return True
+
+    def _best_playhead(self) -> int:
+        """Index of the timestamp with the most wells concurrently in alert."""
+        n = len(self._times)
+        hot = self.scored[self.scored["combined_score"] >= cfg.ALERT_THRESHOLD]
+        if len(hot):
+            counts = hot.groupby("timestamp")["well_id"].nunique()
+            best_t = np.datetime64(counts.idxmax())
+            return int(np.searchsorted(self._times, best_t))
+        return max(0, n - 1 - 6 * 48)
+
+    def _seed_history(self):
+        """
+        Build the historical alert log + failures-prevented count from the
+        failures that occurred at or before the current playhead time. A failing
+        well counts as 'averted' when the model alerted with >=12h lead, else
+        'confirmed' (failure caught too late / missed).
+        """
+        t_now = self.current_time()
+        seeded = []
+        for w, g in self._well_frames.items():
+            if not g["well_fails"].iloc[0]:
+                continue
+            pre = g[(g["hours_to_failure"] >= 0)
+                    & np.isfinite(g["hours_to_failure"])]
+            if len(pre) == 0:
+                continue
+            fail_time = pd.Timestamp(pre["timestamp"].max())
+            if fail_time > t_now:
+                continue  # failure is still in the future relative to playhead
+            crossed = pre[pre["combined_score"] >= self.threshold]
+            detected = len(crossed) > 0
+            lead = float(crossed["hours_to_failure"].max()) if detected else 0.0
+            outcome = "averted" if (detected and lead >= 12) else "confirmed"
+            detected_at = (pd.Timestamp(crossed["timestamp"].iloc[0]).isoformat()
+                           if detected else fail_time.isoformat())
+            seeded.append({
+                "well_id": w,
+                "alert_type": "SB Leak Risk — Polished Rod Misalignment",
+                "severity": "CRITICAL",
+                "score": round(float(crossed["combined_score"].max()), 4)
+                         if detected else round(float(pre["combined_score"].max()), 4),
+                "msi": round(float(pre["MSI"].max()), 4),
+                "lead_time_h": round(lead, 1),
+                "detected_at": detected_at,
+                "updated_at": detected_at,
+                "cleared_at": fail_time.isoformat(),
+                "recommended_action": self.alerts.recommendation("CRITICAL"),
+                "status": "CLOSED",
+                "outcome": outcome,
+            })
+            if outcome == "averted":
+                self._failures_prevented += 1
+                self._counted_wells.add(w)
+        seeded.sort(key=lambda a: a["detected_at"])
+        if seeded:
+            self.alerts.seed_history(seeded)
         return True
 
     def reload(self):

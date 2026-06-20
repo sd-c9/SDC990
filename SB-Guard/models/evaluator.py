@@ -123,10 +123,26 @@ def feature_importance(detector_model, feature_names=None) -> dict:
             "importance": [float(imp[i]) for i in order]}
 
 
+def sanitize(obj):
+    """Recursively replace non-finite floats with None so output is valid JSON
+    (json.dump otherwise emits the non-standard `NaN`/`Infinity` tokens that
+    break browsers' JSON.parse)."""
+    if isinstance(obj, dict):
+        return {k: sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [sanitize(v) for v in obj]
+    if isinstance(obj, (float, np.floating)):
+        return float(obj) if np.isfinite(obj) else None
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    return obj
+
+
 def save_metrics(metrics: dict, path: str | None = None):
     path = path or os.path.join(cfg.SAVED_MODELS_DIR, "metrics.json")
     with open(path, "w") as fh:
-        json.dump(metrics, fh, indent=2, default=_json_default)
+        json.dump(sanitize(metrics), fh, indent=2, allow_nan=False,
+                  default=_json_default)
     return path
 
 

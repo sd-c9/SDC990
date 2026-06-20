@@ -217,7 +217,8 @@ def main():
         "n_train_wells": len(train_wells),
     })
     with open(registry_path, "w") as fh:
-        json.dump(registry, fh, indent=2, default=evaluator._json_default)
+        json.dump(evaluator.sanitize(registry), fh, indent=2,
+                  allow_nan=False, default=evaluator._json_default)
 
     print("-" * 64)
     print(f"Pipeline complete in {time.time()-t0:.1f}s")
